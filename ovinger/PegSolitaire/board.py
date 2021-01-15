@@ -1,9 +1,9 @@
-from space import Space
 import itertools
 import numpy as np
 import math
 import random
 from boarditerator import BoardIterator
+from space import Space
 
 class Board():
     """
