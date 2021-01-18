@@ -70,3 +70,5 @@ class Space():
         """
         self.piece = piece
     
+    def get_coords(self):
+        return self.coord

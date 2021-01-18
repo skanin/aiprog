@@ -24,7 +24,7 @@ class Board():
         Default for diamond is the center of the board, default for triangle is the top (as stated by Wikipedia).
     """
     
-    def __init__(self, board_type, board_size, initial_empty):
+    def __init__(self, board_type='d', board_size=9, initial_empty=[]):
         """
         Initializes an instance of the board
 
@@ -53,9 +53,6 @@ class Board():
 
         self.content = [] # Initialize empty content (board)
         self.init_board() # Initialize the board 
-
-        
-    
     # ------------------------ Validation methods start ------------------------
 
     def check_board_type(self, board_type):
@@ -117,7 +114,7 @@ class Board():
             if coord[1] >= self.board_size or coord[1] < 0: # Checks that y-value is inside board ...
                 raise Exception(f'Invalid y-value in coordinate {coord}. Should be >= 0 or <= board_size ({self.board_size})') # ... if not, raise exception
             
-            if self.board_type == 'T' and coord[0] >= coord[1]: # If the board is a triangle, valid (x, y) pairs are where x >= y
+            if self.board_type == 't' and coord[0] < coord[1]: # If the board is a triangle, valid (x, y) pairs are where x >= y
                 raise Exception(f'Invalid coordinate {coord} for shape Triangle. X-value should be greater than or equal to y-value') # Raise exception if x < y
 
     def check_correct_variable_type(self, var, name, expected):
@@ -192,7 +189,7 @@ class Board():
         self.add_neighbors() # Add neighbors to each space
     
 
-    def insideBoard(self, coord):
+    def inside_board(self, coord):
         """
         Checks if coordinate coord is inside the board.
 
@@ -222,7 +219,7 @@ class Board():
                     directions = [(r-1, c-1), (r-1, c), (r, c-1), (r+1, c), (r+1, c+1), (r, c+1)] 
                 
                 for (x, y) in directions: # Loop thorugh all directions
-                    if self.insideBoard((x,y)): # If it is a valid coordinate ...
+                    if self.inside_board((x,y)): # If it is a valid coordinate ...
                         space.add_neighbor(self.content[x][y]) # ... We add a new neighbor to space.
 
     def get_default_initial_empty(self):
@@ -232,12 +229,55 @@ class Board():
 
         if self.board_type == 't': # If the board is a triangle, just return (0, 0)
             return (0, 0)
-
         center = tuple(np.mean(list(map(lambda x: x.coord, itertools.chain(*self.content))), axis=0)) # Center is the mean of all coordinates
         if self.board_size % 2 == 0: # If the board size is divisible by 2, there are no center. We have to choose between the two closest to the center
             func = random.choice([math.floor, math.ceil]) # Randomly choose floor or ceil function
             return tuple(map(lambda x: func(x), center)) # Return the "center" based on floor or ceil function
         return tuple(map(lambda x: int(x), center)) # return center if board size is not divisible by 2.
+
+    def empty_adjacent(self, coord):
+        if not self.inside_board(coord):
+            return []
+
+    def get_legal_moves_for_space(self, space):
+        if not space.has_piece():
+            return []
+
+        moves = []
+        for n in space.neighbors:
+            if not n.has_piece():
+                continue
+
+            for n1 in n.neighbors:
+                if n1.has_piece():
+                    continue
+                if self.board_type == 'd': 
+                    directions = [(-2, 2), (2, -2), (-2, 0), (2, 0), (0, -2), (0, 2)] 
+                else:
+                    directions = [(-2, -2), (-2, 0), (0, -2), (2, 0), (2, 2), (0, 2)] 
+
+                for direction in directions:
+                    if n1.coord[0] == space.coord[0] + direction[0] and n1.coord[1] == space.coord[1] + direction[1]:
+                        moves.append((space, n1, n))
+        return moves
+                
+
+    def get_legal_moves(self):
+        moves = []
+        
+        for space in itertools.chain(*self.content):
+            moves.extend(self.get_legal_moves_for_space(space))
+        
+        return moves
+
+    def is_legal_move(self, move):
+        return move in self.get_legal_moves_for_space(move[0])
+
+    def make_move(self, move):
+        if self.is_legal_move(move):
+            move[0].set_piece(False)
+            move[1].set_piece(True)
+            move[2].set_piece(False)
 
     # ------------------------ Board methods end -----------------------------
 
@@ -248,3 +288,9 @@ class Board():
         """
 
         return BoardIterator(self) # return custom iterator
+
+
+if __name__ == '__main__':
+    b = Board(initial_empty=[(0, 0), (2, 0),  (0, 2)])
+    for move in b.get_legal_moves():
+        print(move[0], move[1])
