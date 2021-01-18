@@ -2,6 +2,10 @@ import itertools
 import numpy as np
 import math
 import random
+
+from enum import Enum
+from pprint import pprint
+
 from boarditerator import BoardIterator
 from space import Space
 from config import config
@@ -54,6 +58,7 @@ class Board():
 
         self.content = [] # Initialize empty content (board)
         self.init_board() # Initialize the board 
+
     # ------------------------ Validation methods start ------------------------
 
     def check_board_type(self, board_type):
@@ -215,13 +220,15 @@ class Board():
         for r, row in enumerate(self.content): # Loop thorugh each row, with its index
             for c, space in enumerate(row): # Loop through each column(space) in the rows, with its index
                 if self.board_type == 'd': # If the board type is diamond, we have some directions that are legal neighbors, in triangle, we have others, as stated in "Representing hexadiagonal grids". The
-                    directions = [(r-1, c+1), (r+1, c-1), (r-1, c), (r+1, c), (r, c-1), (r, c+1)] 
+                    directions = [(r-1, c), (r+1, c), (r, c-1), (r, c+1), (r-1, c+1), (r+1, c-1)] 
                 else:
-                    directions = [(r-1, c-1), (r-1, c), (r, c-1), (r+1, c), (r+1, c+1), (r, c+1)] 
+                    directions = [(r-1, c), (r+1, c), (r, c-1), (r, c+1), (r-1, c-1), (r+1, c+1)] 
                 
                 for (x, y) in directions: # Loop thorugh all directions
                     if self.inside_board((x,y)): # If it is a valid coordinate ...
                         space.add_neighbor(self.content[x][y]) # ... We add a new neighbor to space.
+                    else:
+                        space.add_neighbor(None) # ... if not, we add None, to be able to get directions later.
 
     def get_default_initial_empty(self):
         """
@@ -236,49 +243,77 @@ class Board():
             return tuple(map(lambda x: func(x), center)) # Return the "center" based on floor or ceil function
         return tuple(map(lambda x: int(x), center)) # return center if board size is not divisible by 2.
 
-    def empty_adjacent(self, coord):
-        if not self.inside_board(coord):
-            return []
-
     def get_legal_moves_for_space(self, space):
-        if not space.has_piece():
-            return []
+        """
+        Get the legal moves for space.
 
-        moves = []
-        for n in space.neighbors:
-            if not n.has_piece():
+        ...
+
+        Parameters
+        ----------
+        space: Space
+            The space to get legal moves for.
+        """
+
+        moves = [] # Initialize the list of legal moves.
+        for direction, n in enumerate(space.get_neighbors()): # Loop through the space's neighbors, with their directions (the order in which they were added as neighbors)
+            if not n or not n.has_piece() or not n.get_neighbors()[direction] or n.get_neighbors()[direction].has_piece():
+                # If the neighbor is None (illegal direction), the neighbor does not have a piece, 
+                # the neighbor's neighbor is None (illegal direction from the neighbor) or the neighbor's neighbor has a piece
+                # it is not a legal move. 
                 continue
-
-            for n1 in n.neighbors:
-                if n1.has_piece():
-                    continue
-                if self.board_type == 'd': 
-                    directions = [(-2, 2), (2, -2), (-2, 0), (2, 0), (0, -2), (0, 2)] 
-                else:
-                    directions = [(-2, -2), (-2, 0), (0, -2), (2, 0), (2, 2), (0, 2)] 
-
-                for direction in directions:
-                    if n1.coord[0] == space.coord[0] + direction[0] and n1.coord[1] == space.coord[1] + direction[1]:
-                        moves.append((space, n1, n))
-        return moves
-                
-
+            moves.append((space, direction)) # Add the legal move to moves
+        return moves # Return this space's legal moves.
+                    
     def get_legal_moves(self):
-        moves = []
+        """
+        Get all legal moves for the current state.
+        """
+        moves = [] # Init empty moves list
         
-        for space in itertools.chain(*self.content):
-            moves.extend(self.get_legal_moves_for_space(space))
+        for space in itertools.chain(*self.content): # Loop over all spaces
+            if not space.has_piece(): # Check that the space has a piece
+                continue
+            moves.extend(self.get_legal_moves_for_space(space)) # Add this piece's legal moves.
         
-        return moves
+        return moves # Return all legal moves
 
     def is_legal_move(self, move):
-        return move in self.get_legal_moves_for_space(move[0])
+        """
+        Check that move is a legal move.
+
+        ...
+
+        Parameters
+        ----------
+        move: tuple
+            The move to check.
+        """
+        return move in self.get_legal_moves_for_space(move[0]) # Return true if the move is in the spaces legal moves.
 
     def make_move(self, move):
-        if self.is_legal_move(move):
-            move[0].set_piece(False)
-            move[1].set_piece(True)
-            move[2].set_piece(False)
+        """
+        Make move move.
+
+        ...
+
+        Parameters
+        ----------
+        move: tuple
+            Move to make.
+        """
+        if self.is_legal_move(move): # If the move is legal
+            for space in itertools.chain(*self.content): # Loop thorugh all spaces on the board
+                space.jumped = False # Set jumped to false (for coloring)
+                space.jumped_from = False # Set jumped_from to true (for coloring)
+            (space, direction) = move # Unpack the move
+            space.set_piece(False) # Remove the piece from the space
+            space.jumped_from = True # Set jumped_from to true (for coloring)
+            space.get_neighbors()[direction].set_piece(False) # Remove piece from the space that are jumped over
+            space.get_neighbors()[direction].get_neighbors()[direction].set_piece(True) # Add piece to the space that are jumped to
+            space.get_neighbors()[direction].get_neighbors()[direction].jumped = True # Set jumped to true (for coloring)
+        else: # If the move is not legal
+            raise Exception(f'Move {move} is illegal in the current board state') # Raise exception.
 
     # ------------------------ Board methods end -----------------------------
 

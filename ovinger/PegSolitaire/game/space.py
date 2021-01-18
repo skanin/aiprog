@@ -29,13 +29,15 @@ class Space():
         self.piece = piece # Set piece
         self.coord = coord # Set coordinate
         self.neighbors = [] # Set initial neighbors to empty list
+        self.jumped = False 
+        self.jumped_from = False
     
-    def __str__(self):
+    def __repr__(self):
         """
         When printing the object, return its coordinate and if its empty or not
         """
 
-        return str(self.coord) + ' - ' + str(self.piece)
+        return str(self.coord)
     
     def has_piece(self):
         """
