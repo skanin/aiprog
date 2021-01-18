@@ -3,11 +3,18 @@ import time
 import random
 from board import Board
 from graph import Graph
+from config import config
 
 class Game():
-    def __init__(self, board_type='d', board_size=9, initial_empty=[]):
+    def __init__(self, 
+                board_type=config['board_type'], 
+                board_size=config['board_size'],
+                initial_empty=config['initial_empty'],
+                update_freq=config['update_freq'],
+                pause=config['pause']):
+
         self.board = Board(board_type, board_size, initial_empty)
-        self.G = Graph(self.board, pause=True, update_freq=0.09)
+        self.G = Graph(self.board, pause=pause, update_freq=update_freq)
     
     def show_game(self):
         self.G.show_board()

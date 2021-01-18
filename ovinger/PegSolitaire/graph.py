@@ -2,6 +2,7 @@ import networkx as nx
 import itertools
 import matplotlib.pyplot as plt
 from board import Board
+from config import config
 
 class Graph():
     """
@@ -15,7 +16,7 @@ class Graph():
         Instance of a game board.
     """
 
-    def __init__(self, board, pause, update_freq=1):
+    def __init__(self, board, pause=config['pause'], update_freq=config['update_freq']):
         """
         Initializes an instance of a graph to visualize a board of Peg solitaire.
 
@@ -83,14 +84,4 @@ class Graph():
             else:
                 colors.append('black') # Else, append black color
         return colors # Return the colors.
-
-if __name__ == '__main__':
-    b = Board('d', 10)
-    g = Graph(b, pause=True)
-    for move in b.get_legal_moves():
-        print(move[0], move[1])
-    g.show_board()
-    space = list(filter(lambda x: x.coord[0] == 0 and x.coord[1] == 0, itertools.chain(*b)))[0]
-    space.set_piece(False)
-    g.pause = False
-    g.show_board()
+        

@@ -4,6 +4,7 @@ import math
 import random
 from boarditerator import BoardIterator
 from space import Space
+from config import config
 
 class Board():
     """
@@ -24,7 +25,7 @@ class Board():
         Default for diamond is the center of the board, default for triangle is the top (as stated by Wikipedia).
     """
     
-    def __init__(self, board_type='d', board_size=9, initial_empty=[]):
+    def __init__(self, board_type=config['board_type'], board_size=config['board_size'], initial_empty=config['initial_empty']):
         """
         Initializes an instance of the board
 
@@ -288,9 +289,3 @@ class Board():
         """
 
         return BoardIterator(self) # return custom iterator
-
-
-if __name__ == '__main__':
-    b = Board(initial_empty=[(0, 0), (2, 0),  (0, 2)])
-    for move in b.get_legal_moves():
-        print(move[0], move[1])
