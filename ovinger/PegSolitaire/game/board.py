@@ -6,9 +6,8 @@ import random
 from enum import Enum
 from pprint import pprint
 
-from boarditerator import BoardIterator
-from space import Space
-from config import config
+from .boarditerator import BoardIterator
+from .space import Space
 
 class Board():
     """
@@ -29,7 +28,7 @@ class Board():
         Default for diamond is the center of the board, default for triangle is the top (as stated by Wikipedia).
     """
     
-    def __init__(self, board_type=config['board_type'], board_size=config['board_size'], initial_empty=config['initial_empty']):
+    def __init__(self, board_type, board_size, initial_empty):
         """
         Initializes an instance of the board
 
@@ -262,7 +261,7 @@ class Board():
                 # the neighbor's neighbor is None (illegal direction from the neighbor) or the neighbor's neighbor has a piece
                 # it is not a legal move. 
                 continue
-            moves.append((space, direction)) # Add the legal move to moves
+            moves.append((space.get_coords(), direction)) # Add the legal move to moves
         return moves # Return this space's legal moves.
                     
     def get_legal_moves(self):
@@ -275,8 +274,12 @@ class Board():
             if not space.has_piece(): # Check that the space has a piece
                 continue
             moves.extend(self.get_legal_moves_for_space(space)) # Add this piece's legal moves.
-        
+        # print(f'Moves: {moves}')
         return moves # Return all legal moves
+
+    def _get_space_from_coord(self, coord):
+        #Sprint(coord)
+        return list(filter(lambda x: x.get_coords() == coord, itertools.chain(*self.content)))[0]
 
     def is_legal_move(self, move):
         """
@@ -289,7 +292,7 @@ class Board():
         move: tuple
             The move to check.
         """
-        return move in self.get_legal_moves_for_space(move[0]) # Return true if the move is in the spaces legal moves.
+        return move in self.get_legal_moves_for_space(self._get_space_from_coord(move[0])) # Return true if the move is in the spaces legal moves.
 
     def make_move(self, move):
         """
@@ -306,7 +309,8 @@ class Board():
             for space in itertools.chain(*self.content): # Loop thorugh all spaces on the board
                 space.jumped = False # Set jumped to false (for coloring)
                 space.jumped_from = False # Set jumped_from to true (for coloring)
-            (space, direction) = move # Unpack the move
+            (coord, direction) = move # Unpack the move
+            space = self._get_space_from_coord(coord)
             space.set_piece(False) # Remove the piece from the space
             space.jumped_from = True # Set jumped_from to true (for coloring)
             space.get_neighbors()[direction].set_piece(False) # Remove piece from the space that are jumped over
@@ -314,7 +318,17 @@ class Board():
             space.get_neighbors()[direction].get_neighbors()[direction].jumped = True # Set jumped to true (for coloring)
         else: # If the move is not legal
             raise Exception(f'Move {move} is illegal in the current board state') # Raise exception.
-
+        
+        return self.string_representation()
+    
+    def string_representation(self):
+        st = ''
+        for space in itertools.chain(*self.content):
+            if space.has_piece():
+                st += '1'
+            else:
+                st += '0'
+        return st
     # ------------------------ Board methods end -----------------------------
 
 
