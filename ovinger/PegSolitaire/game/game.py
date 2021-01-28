@@ -77,7 +77,7 @@ class Game():
 
     
     def is_game_over(self):
-        return self.is_win() or len(self.board.get_legal_moves()) == 0
+        return self.is_win() or len(self.get_legal_moves()) == 0
 
     def is_win(self):
         return self.get_remaining_pegs() == 1
@@ -95,13 +95,17 @@ class Game():
         """
 
         if self.is_win():
-            print('Heheeeeey')
-            return 10
+            print('Win')
+            return 100
         
         if self.is_game_over() and not self.is_win():
-            return -1
+            return -100
         
-        return 0
+        reward = 0
+        for space in itertools.chain(*self.board):
+            reward += 10 if not space.has_piece() else -10
+        #return 100/self.get_remaining_pegs()
+        return reward
 
     def string_representation(self):
         return self.board.string_representation()

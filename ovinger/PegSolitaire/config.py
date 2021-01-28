@@ -1,22 +1,22 @@
 game_config = {
-    'board_type': 't',
-    'board_size': 5,
-    'initial_empty': [],
-    'update_freq': 0.00001,
+    'board_type': 'd',
+    'board_size': 4,
+    'initial_empty': [(2,1)],
+    'update_freq': .5,
     'pause': False,
     'visual': False
 }
 
 actor_config = {
     'learning_rate': 0.1,
-    'gamma': 0.99,
+    'gamma': 0.9,
     'epsilon': 0.5,
-    'goal_epsilon': 0.001,
-    'eligibility_decay': 0.99
+    'goal_epsilon': 0.0001,
+    'eligibility_decay': 0.9
 }
 
 critic_config = {
     'learning_rate': 0.1,
-    'gamma': 0.99,
-    'eligibility_decay': 0.99
+    'gamma': 0.9,
+    'eligibility_decay': 0.9
 }

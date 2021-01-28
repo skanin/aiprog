@@ -278,7 +278,7 @@ class Board():
         return moves # Return all legal moves
 
     def _get_space_from_coord(self, coord):
-        #Sprint(coord)
+        # print(coord)
         return list(filter(lambda x: x.get_coords() == coord, itertools.chain(*self.content)))[0]
 
     def is_legal_move(self, move):

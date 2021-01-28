@@ -12,8 +12,8 @@ class Actor():
         self.epsilon = epsilon
         x = Symbol('x')
         self.num_episodes = num_episodes
-        self.epsilon_decrease = solve(self.epsilon - num_episodes*x - goal_epsilon, x)[0]
-        print(self.epsilon_decrease)
+        self.goal_epsilon = goal_epsilon
+        self.epsilon_decrease = solve(self.epsilon - num_episodes*x - self.goal_epsilon, x)[0]
 
     def _initialize_policy(self):
         for state in self.policy:
@@ -42,20 +42,20 @@ class Actor():
         return random.uniform(0, 1) < self.epsilon
 
     def _decrease_epsilon(self):
-        self.epsilon -= self.epsilon_decrease
+        self.epsilon = self.epsilon - self.epsilon_decrease if self.epsilon > self.goal_epsilon else self.epsilon
 
-    def get_move(self, state, legal_moves=[]):
-        if (state not in self.policy.keys()) or (state in self.policy.keys() and self._should_random_move()):
-            print('Exploration')
-            a = random.choice(legal_moves)
-        else:
-            print('Greedy')
-            a = max(self.policy[state].items(), key=lambda x: x[1])[0]
+    def get_move(self, state, legal_moves=[], training=False):
+        if (state not in self.policy.keys() and not training):
+            return random.choice(legal_moves)
+
+        if self._should_random_move():
+            return random.choice(list(self.policy[state].keys()))
+
+        return max(self.policy[state].items(), key=lambda x: x[1])[0]
         
-        return a
-
     def update_eligibilities(self, state, action, curr_state):
         self.eligibilities[state][action] = self.gamma * self.eligibility_decay * self.eligibilities[state][action] + (1 * int(state == curr_state))
+        # self.eligibilities[state][action] = 1 if state == curr_state else self.gamma * self.eligibility_decay * self.eligibilities[state][action] #  + (1 * int(state == curr_state))
 
     def reset_epsilon(self):
         self.epsilon = 0.5
@@ -69,3 +69,9 @@ class Actor():
         if state not in self.policy.keys():
             self._add_to_policy(state, action)
         self.policy[state][action] = self.policy[state].get(action, 0) + self.learning_rate * temporal_difference_error * self.eligibilities.get(state, {}).get(action, 1)
+    
+    def handle_state(self, state, legal_moves):
+        if state not in self.policy.keys():
+            self.policy[state] = {}
+            for move in legal_moves:
+                self.policy[state][move] = 0

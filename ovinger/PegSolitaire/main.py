@@ -35,18 +35,26 @@ def run(num_episodes, train=True):
         actor.reset_eligibilities()
         # actor.reset_epsilon()
         game, state, legal_moves, done = env.reset()
+        
+        if len(legal_moves) == 0:
+            print("No legal moves in this start state")
+            break
+        
         action = actor.get_move(state, legal_moves)
         episode_actions = [] 
 
         while not done:
+            actor.handle_state(state, legal_moves)
+            critic.handle_state(state)
+
             new_state, reward, done, legal_moves = env.step(action)
-            
+
             if not train:
                 game.show_game()
             
             if done:
                 break
-            
+
             new_action = actor.get_move(new_state, legal_moves)
             
             actor.set_initial_sap_eligibility(state, action)
@@ -68,6 +76,22 @@ def run(num_episodes, train=True):
 
 
 run(1000)
+
+def run_after_train(actor):
+    actor.epsilon = 0
+    game, state, legal_moves, done = env.reset()
+    game.G.pause = True
+    action = actor.get_move(state, legal_moves)
+    while not done:
+        state, _, done, legal_moves = env.step(action)
+        if done:
+            break
+        action = actor.get_move(state, legal_moves)
+        game.show_game()
+    game.G.pause = False
+    game.show_game()
+
+run_after_train(actor)
 
 x = list(map(lambda x: x[0], remaining_pegs))
 y = list(map(lambda x: x[1], remaining_pegs))

@@ -39,9 +39,14 @@ class Critic():
             self.eligibilities[state] = 0
 
     def update_eligibilities(self, state, curr_state):
+        # self.eligibilities[state] = 1 if state == curr_state else self.gamma * self.eligibility_decay * self.eligibilities[state] # + (1 * int(state == curr_state))
         self.eligibilities[state] = self.gamma * self.eligibility_decay * self.eligibilities[state] + (1 * int(state == curr_state))
 
     def update_values_and_eligibilities(self, episode_actions, temporal_difference_error):
         for s, _ in episode_actions:
             self.update_state_value(s, temporal_difference_error)
             self.update_eligibilities(s, episode_actions[-1][0])
+    
+    def handle_state(self, state):
+        if state not in self.V.keys():
+            self.add_state(state)
