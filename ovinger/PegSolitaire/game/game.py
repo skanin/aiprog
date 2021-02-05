@@ -95,7 +95,7 @@ class Game():
         """
 
         if self.is_win():
-            print('Win')
+            print('Heyheyheeeeey')
             return 100
         
         if self.is_game_over() and not self.is_win():
