@@ -1,6 +1,7 @@
 import itertools
 import time
 import random
+import numpy as np
 from .board import Board
 from .graph import Graph
 
@@ -82,7 +83,7 @@ class Game():
     def is_win(self):
         return self.get_remaining_pegs() == 1
 
-    def calc_reward(self):
+    def calc_reward(self, incremental=True):
 
         """
         Okay, thanks! 
@@ -93,19 +94,48 @@ class Game():
         but if it finds a winning state it will converge to always winning, 
         given enough episodes.
         """
+        # return (2 * (1 - self.get_remaining_pegs()) / (len(list(itertools.chain(*self.board))) - 2)) + 1
+        # if self.is_win():
+        #     return 1
+        # rew =  1/(len(list(itertools.chain(*self.board))) - 1)
+        # print(rew)
+        # return rew
+        # reward = 0
+        
+        # if self.is_win():
+        #     print('Heyheyheyhey')
+        #     reward += 100
+        
+        # if self.is_game_over() and not self.is_win():
+        #     reward += -100
+        
+        # # #  -1 * 100/self.get_remaining_pegs()
+        # for space in itertools.chain(*self.board):
+        #     reward += 10 if not space.has_piece() else -10
+        # return reward
+        # return np.tanh(reward)
+        # if not self.is_win() and not self.is_game_over():
+        #     return 0.1
+        
+        # if self.is_game_over() and not self.is_win():
+        #     return -10
+        
+        # return 10
+        num_pegs = len(list(itertools.chain(*self.board)))
+        remaining_pegs = self.get_remaining_pegs()
+        empty_holes = num_pegs - remaining_pegs
+
+        reward = empty_holes/remaining_pegs
 
         if self.is_win():
-            print('Heyheyheeeeey')
-            return 100
+            reward += 100
         
         if self.is_game_over() and not self.is_win():
-            return -100
-        
-        reward = 0
-        for space in itertools.chain(*self.board):
-            reward += 10 if not space.has_piece() else -10
-        #return 100/self.get_remaining_pegs()
+            reward -= 100
+
+        print(reward)
         return reward
+        
 
     def string_representation(self):
         return self.board.string_representation()

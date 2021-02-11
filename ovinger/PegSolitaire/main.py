@@ -20,26 +20,28 @@ actor = Actor(
 
 pickle.dump(actor, open('not_trained_actor', 'wb'))
 
-# critic = Critic(
-#     critic_config['learning_rate'], 
-#     critic_config['gamma'], 
-#     critic_config['eligibility_decay'], 
-# )
-
-critic = ANNcritic(
-    anncritic_config['learning_rate'], 
-    anncritic_config['gamma'], 
-    anncritic_config['eligibility_decay'],
-    anncritic_config['inp_size'],
-    anncritic_config['layers']
-)
+if game_config['critic'] == 'table':
+    critic = Critic(
+        critic_config['learning_rate'], 
+        critic_config['gamma'], 
+        critic_config['eligibility_decay'], 
+    )
+else:
+    critic = ANNcritic(
+        anncritic_config['learning_rate'], 
+        anncritic_config['gamma'], 
+        anncritic_config['eligibility_decay'],
+        anncritic_config['inp_size'],
+        anncritic_config['layers']
+    )
 
 remaining_pegs = []
-
+rewards = []
 def run(num_episodes, train=True):
-
+    
     for episode in range(num_episodes):
-        print(f'Episode. {episode}')
+        if episode % 10 == 0:
+            print(f'Episode: {episode}')
         critic.reset_eligibilities()
         actor.reset_eligibilities()
         # actor.reset_epsilon()
@@ -51,13 +53,13 @@ def run(num_episodes, train=True):
         
         action = actor.get_move(state, legal_moves)
         episode_actions = [] 
-
+        episode_rewards = 0
         while not done:
             actor.handle_state(state, legal_moves)
             critic.handle_state(state)
 
             new_state, reward, done, legal_moves = env.step(action)
-
+            episode_rewards += reward
             if not train:
                 game.show_game()
             
@@ -68,24 +70,23 @@ def run(num_episodes, train=True):
             
             actor.set_initial_sap_eligibility(state, action)
             
-            episode_actions.append((state, action))
-
-            temporal_difference_error = critic.calculate_temporal_difference_error(state, reward, new_state)
-
+            target, inp = critic.calculate_temporal_difference_error(state, reward, new_state)
+            episode_actions.append((state, target-inp, action))
             if isinstance(critic, Critic):
                 critic.set_initial_eligibility(state)
-                critic.update_values_and_eligibilities(episode_actions, temporal_difference_error)
+                critic.update_values_and_eligibilities(episode_actions, target-inp)
             else:
-                critic.update_weights_and_eligibilities(episode_actions, temporal_difference_error)
+                critic.update_weights_and_eligibilities(episode_actions, target, inp)
 
-            actor.update_values_and_eligibilities(episode_actions, temporal_difference_error, state)
-
+            actor.update_values_and_eligibilities(episode_actions, target-inp, state)
+            
             state = new_state
             action = new_action
         # print(f'Episode {episode+1}: {game.get_remaining_pegs()}')
         actor._decrease_epsilon()
         remaining_pegs.append((episode + 1, game.get_remaining_pegs()))
-
+        # print(episode_rewards)
+        rewards.append((episode + 1, episode_rewards))
 
 run(1000)
 
@@ -114,4 +115,12 @@ y = list(map(lambda x: x[1], remaining_pegs))
 plt.plot(x, y)
 plt.xlabel('Episode')
 plt.ylabel('Remaining pegs')
+plt.show()
+
+x1 = list(map(lambda x: x[0], rewards))
+y1 = list(map(lambda x: x[1], rewards))
+
+plt.plot(x1, y1)
+plt.xlabel('Episode')
+plt.ylabel('Rewards')
 plt.show()

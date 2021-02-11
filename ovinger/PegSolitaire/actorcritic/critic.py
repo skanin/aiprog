@@ -29,7 +29,9 @@ class Critic():
         if new_state not in self.V.keys():
             self.add_state(new_state)
         
-        return reward + (self.gamma * self.V[new_state]) - self.V[prev_state]
+        inp = self.V[prev_state]
+        T = reward + (self.gamma * self.V[new_state])
+        return T, inp
     
     # def set_temporal_difference_error(self, prev_state, reward, new_state):
     #     self.temporal_difference_error = self.calculate_temporal_difference_error(prev_state, reward, new_state)
@@ -39,8 +41,11 @@ class Critic():
             self.eligibilities[state] = 0
 
     def update_eligibilities(self, state, curr_state):
+        if state == curr_state:
+            self.eligibilities[state] = 1
+        else:
         # self.eligibilities[state] = 1 if state == curr_state else self.gamma * self.eligibility_decay * self.eligibilities[state] # + (1 * int(state == curr_state))
-        self.eligibilities[state] = self.gamma * self.eligibility_decay * self.eligibilities[state] + (1 * int(state == curr_state))
+            self.eligibilities[state] = self.gamma * self.eligibility_decay * self.eligibilities[state] # + (1 * int(state == curr_state))
 
     def update_values_and_eligibilities(self, episode_actions, temporal_difference_error):
         for s, _ in episode_actions:

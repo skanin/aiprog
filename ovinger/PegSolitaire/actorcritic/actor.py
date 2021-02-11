@@ -13,7 +13,7 @@ class Actor():
         x = Symbol('x')
         self.num_episodes = num_episodes
         self.goal_epsilon = goal_epsilon
-        self.epsilon_decrease = solve(self.epsilon - num_episodes*x - self.goal_epsilon, x)[0]
+        self.epsilon_decrease = solve(self.epsilon - num_episodes * x - self.goal_epsilon, x)[0] # * (95/100)
 
     def _initialize_policy(self):
         for state in self.policy:
@@ -34,7 +34,7 @@ class Actor():
             self.eligibilities[state][action] = 1
 
     def update_values_and_eligibilities(self, episode_actions, temporal_difference_error, curr_state):
-        for s, a in episode_actions:
+        for s, _, a in episode_actions:
             self.update_policy(s, a, temporal_difference_error)
             self.update_eligibilities(s, a, curr_state)
     
@@ -54,11 +54,14 @@ class Actor():
         return max(self.policy[state].items(), key=lambda x: x[1])[0]
         
     def update_eligibilities(self, state, action, curr_state):
-        self.eligibilities[state][action] = self.gamma * self.eligibility_decay * self.eligibilities[state][action] + (1 * int(state == curr_state))
+        if state == curr_state:
+            self.eligibilities[state][action] = 1
+        else:
+            self.eligibilities[state][action] = self.gamma * self.eligibility_decay * self.eligibilities[state][action] # + (1 * int(state == curr_state))
         # self.eligibilities[state][action] = 1 if state == curr_state else self.gamma * self.eligibility_decay * self.eligibilities[state][action] #  + (1 * int(state == curr_state))
 
     def reset_epsilon(self):
-        self.epsilon = 0.5
+        self.epsilon = 1
 
     def _add_to_policy(self, state, action):
         self.policy[state] = {
@@ -69,6 +72,17 @@ class Actor():
         if state not in self.policy.keys():
             self._add_to_policy(state, action)
         self.policy[state][action] = self.policy[state].get(action, 0) + self.learning_rate * temporal_difference_error * self.eligibilities.get(state, {}).get(action, 1)
+
+    #     self.normalize_policy()
+    # def normalize_policy(self):
+    #     total = 0
+    #     for state in self.policy:
+    #         for action in self.policy[state]:
+    #             total += self.policy[state][action]
+        
+    #     for state in self.policy:
+    #         for action in self.policy[state]:
+    #             self.policy[state][action] *= 1/total  
     
     def handle_state(self, state, legal_moves):
         if state not in self.policy.keys():
