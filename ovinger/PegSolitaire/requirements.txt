@@ -2,3 +2,4 @@ numpy>=1.19.1
 networkx>=2.5
 matplotlib>=3.3.2
 sympy>=1.7.1
+torch>=1.7.1

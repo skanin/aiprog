@@ -3,9 +3,6 @@ import numpy as np
 import math
 import random
 
-from enum import Enum
-from pprint import pprint
-
 from .boarditerator import BoardIterator
 from .space import Space
 

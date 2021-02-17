@@ -1,7 +1,4 @@
 import itertools
-import time
-import random
-import numpy as np
 from .board import Board
 from .graph import Graph
 
@@ -78,76 +75,37 @@ class Game():
 
     
     def is_game_over(self):
+        """
+        Return if the game is over
+        """
         return self.is_win() or len(self.get_legal_moves()) == 0
 
     def is_win(self):
+        """
+        Return if the game is win
+        """
         return self.get_remaining_pegs() == 1
 
-    def calc_reward(self, incremental=True):
-
+    def calc_reward(self):
         """
-        Okay, thanks! 
-        Final question: What is a reasonable setup for rewards for the Peg solitaire game? 
-        I'm currently using +10 for win and -1 for everything else. 
-        This means that the RL system has no preference for losing with few pegs remaining
-        (as this just gives more penalty than losing with many pegs), 
-        but if it finds a winning state it will converge to always winning, 
-        given enough episodes.
+        Calculate reward
         """
-        # return (2 * (1 - self.get_remaining_pegs()) / (len(list(itertools.chain(*self.board))) - 2)) + 1
-        # if self.is_win():
-        #     return 1
-        # rew =  1/(len(list(itertools.chain(*self.board))) - 1)
-        # print(rew)
-        # return rew
-        # reward = 0
-        
-        # if self.is_win():
-        #     print('Heyheyheyhey')
-        #     reward += 100
-        
-        # if self.is_game_over() and not self.is_win():
-        #     reward += -100
-        
-        # # #  -1 * 100/self.get_remaining_pegs()
-        # for space in itertools.chain(*self.board):
-        #     reward += 10 if not space.has_piece() else -10
-        # return reward
-        # return np.tanh(reward)
-        # if not self.is_win() and not self.is_game_over():
-        #     return 0.1
-        
-        # if self.is_game_over() and not self.is_win():
-        #     return -10
-        
-        # return 10
-        num_pegs = len(list(itertools.chain(*self.board)))
-        remaining_pegs = self.get_remaining_pegs()
-        empty_holes = num_pegs - remaining_pegs
-
-        reward = empty_holes/remaining_pegs
-
+        reward = 0
         if self.is_win():
-            reward += 100
-        
+            reward = 100
         if self.is_game_over() and not self.is_win():
-            reward -= 100
-
-        print(reward)
+            reward = -100 
+        for peg in itertools.chain(*self.board):
+            if peg.has_piece():
+                reward -= 10
+            else:
+                reward += 10
         return reward
         
 
     def string_representation(self):
+        """
+        Return the game as a string.
+        """
         return self.board.string_representation()
-
-
-if __name__ == '__main__':
-    g = Game()
-    g.show_game()
-    while len(g.get_legal_moves()):
-        g.make_move()
-        print(g.get_remaining_pegs())
-        g.show_game()
-    g.G.pause = False
-    g.show_game()
     
