@@ -1,9 +1,6 @@
 import itertools
-import time
-import random
-from board import Board
-from graph import Graph
-from config import config
+from .board import Board
+from .graph import Graph
 
 class Game():
     """
@@ -25,11 +22,11 @@ class Game():
         The update frequency of the live update graph. Default is .01
     """
     def __init__(self, 
-                board_type=config['board_type'], 
-                board_size=config['board_size'],
-                initial_empty=config['initial_empty'],
-                update_freq=config['update_freq'],
-                pause=config['pause']):
+                board_type, 
+                board_size,
+                initial_empty,
+                update_freq,
+                pause):
         """
         Initialize a game of Peg solitaire
 
@@ -63,12 +60,12 @@ class Game():
         """
         return self.board.get_legal_moves() # Call board's get_legal_moves
 
-    def make_move(self):
+    def make_move(self, move):
         """
         Make a move. For now, this is random.
         """
-        move = random.choice(self.board.get_legal_moves()) # Randomly choose a move from the legal moves
-        self.board.make_move(move) # Make the move
+        # move = random.choice(self.board.get_legal_moves()) # Randomly choose a move from the legal moves
+        return self.board.make_move(move), self.calc_reward(), self.is_game_over(), self.get_legal_moves() # Make the move
 
     def get_remaining_pegs(self):
         """
@@ -76,14 +73,39 @@ class Game():
         """
         return len(list(filter(lambda x: x.has_piece(), itertools.chain(*self.board.content))))
 
+    
+    def is_game_over(self):
+        """
+        Return if the game is over
+        """
+        return self.is_win() or len(self.get_legal_moves()) == 0
 
-if __name__ == '__main__':
-    g = Game()
-    g.show_game()
-    while len(g.get_legal_moves()):
-        g.make_move()
-        print(g.get_remaining_pegs())
-        g.show_game()
-    g.G.pause = False
-    g.show_game()
+    def is_win(self):
+        """
+        Return if the game is win
+        """
+        return self.get_remaining_pegs() == 1
+
+    def calc_reward(self):
+        """
+        Calculate reward
+        """
+        reward = 0
+        if self.is_win():
+            reward = 100
+        if self.is_game_over() and not self.is_win():
+            reward = -100 
+        for peg in itertools.chain(*self.board):
+            if peg.has_piece():
+                reward -= 10
+            else:
+                reward += 10
+        return reward
+        
+
+    def string_representation(self):
+        """
+        Return the game as a string.
+        """
+        return self.board.string_representation()
     

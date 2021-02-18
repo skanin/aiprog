@@ -37,7 +37,7 @@ class Space():
         When printing the object, return its coordinate and if its empty or not
         """
 
-        return str(self.coord)
+        return str(self.coord) + ' - ' + str(self.piece)
     
     def has_piece(self):
         """

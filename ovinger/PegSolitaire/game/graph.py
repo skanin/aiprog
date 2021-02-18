@@ -1,7 +1,6 @@
 import networkx as nx
 import itertools
 import matplotlib.pyplot as plt
-from config import config
 
 class Graph():
     """
@@ -19,7 +18,7 @@ class Graph():
         The update frequency of the live update graph.
     """
 
-    def __init__(self, board, pause=config['pause'], update_freq=config['update_freq']):
+    def __init__(self, board, pause, update_freq):
         """
         Initializes an instance of a graph to visualize a board of Peg solitaire.
 
