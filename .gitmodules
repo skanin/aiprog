@@ -1,3 +1,9 @@
 [submodule "ovinger/PegSolitaire"]
 	path = ovinger/PegSolitaire
 	url = git@github.com:skanin/PegSolitaire.git
+[submodule "ovinger/ovinger/MCTS"]
+	path = ovinger/ovinger/MCTS
+	url = git@github.com:skanin/MCTS.git
+[submodule "ovinger/MCTS"]
+	path = ovinger/MCTS
+	url = git@github.com:skanin/MCTS.git
