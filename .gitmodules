@@ -1,0 +1,3 @@
+[submodule "ovinger/PegSolitaire"]
+	path = ovinger/PegSolitaire
+	url = git@github.com:skanin/PegSolitaire.git
