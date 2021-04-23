@@ -7,3 +7,6 @@
 [submodule "ovinger/MCTS"]
 	path = ovinger/MCTS
 	url = git@github.com:skanin/MCTS.git
+[submodule "ovinger/mountaincar"]
+	path = ovinger/mountaincar
+	url = git@github.com:skanin/mountaincar.git
